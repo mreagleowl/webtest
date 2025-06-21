@@ -1,0 +1,55 @@
+# Общие системные
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+env/
+*.sqlite3
+*.db
+
+# Node.js (фронт)
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+dist/
+.vite/
+
+# VSCode/IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Docker
+*.local
+*.dockerignore
+
+# Файлы настройки пользователя
+*.bak
+*.tmp
+
+# Архивы, сборки
+*.zip
+*.tar
+*.gz
+
+# Фронтовые логи и локальные настройки
+coverage/
+*.log
+
+# OS specific
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Для production (если не нужно хранить результаты тестов)
+results/
