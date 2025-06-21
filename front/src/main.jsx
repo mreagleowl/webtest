@@ -1,8 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-
-function App() {
-  return <div style={{color:'red', fontSize:'40px'}}>!!! REACT ЖИВОЙ !!!</div>;
-}
+import App from "./App";
+import "./styles/tailwind.css";
 
 createRoot(document.getElementById("root")).render(<App />);

@@ -9,7 +9,7 @@ export default function AdminLogin() {
     e.preventDefault();
     // Мінімальна перевірка пароля, наприклад "admin123"
     if (password === "admin123") {
-      navigate("/admin");
+      navigate("/admin-panel");
     } else {
       alert("Невірний пароль!");
     }
