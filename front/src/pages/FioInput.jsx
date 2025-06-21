@@ -5,30 +5,33 @@ export default function FioInput() {
   const [fio, setFio] = useState("");
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const theme = params.get("theme");
+  const theme = params.get("theme") || "";
 
-  function handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (fio.trim().length < 3) return;
-    navigate(`/test?theme=${theme}&fio=${encodeURIComponent(fio)}`);
-  }
+    if (fio.trim()) {
+      navigate(`/test?theme=${theme}&fio=${encodeURIComponent(fio)}`);
+    }
+  };
 
   return (
-    <form className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow" onSubmit={handleSubmit}>
-      <h2 className="text-lg font-bold mb-4">Введіть ПІБ</h2>
-      <input
-        className="w-full border rounded px-3 py-2 mb-4"
-        value={fio}
-        onChange={e => setFio(e.target.value)}
-        placeholder="Прізвище, ім'я, по батькові"
-        required
-      />
-      <button
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-        type="submit"
-      >
-        Далі
-      </button>
-    </form>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-4">
+      <h2 className="text-2xl font-bold mb-6 text-blue-800">Введіть ваше ПІБ</h2>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-md">
+        <input
+          type="text"
+          className="border border-gray-300 rounded-xl p-4 text-lg"
+          placeholder="ПІБ"
+          value={fio}
+          onChange={(e) => setFio(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-3 rounded-2xl shadow-md transition"
+        >
+          Почати тест
+        </button>
+      </form>
+    </div>
   );
 }
