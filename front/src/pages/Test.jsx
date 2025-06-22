@@ -1,92 +1,124 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Test() {
-  const [params] = useSearchParams();
-  const theme = params.get("theme") || "";
-  const fio = params.get("fio") || "";
+  const [searchParams] = useSearchParams();
+  const themeId = searchParams.get("theme");
+  const pib = searchParams.get("pib");
   const [questions, setQuestions] = useState([]);
+  const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`/api/questions?theme=${theme}`)
-      .then((r) => r.json())
-      .then(setQuestions);
-  }, [theme]);
+    fetch(`/api/questions?theme=${encodeURIComponent(themeId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setQuestions(data.questions || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Не вдалося завантажити питання.");
+        setLoading(false);
+      });
+  }, [themeId]);
 
-  if (!questions.length) return <div className="min-h-screen flex items-center justify-center text-lg">Завантаження...</div>;
+  if (loading) return <div className="text-center mt-5">Завантаження...</div>;
+  if (error) return <div className="alert alert-danger mt-4 text-center">{error}</div>;
+  if (!questions.length) return <div className="alert alert-info mt-4 text-center">Немає питань для цієї теми.</div>;
 
-  const q = questions[step];
+  const q = questions[current];
 
-  const handleChange = (idx) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [step]: prev[step]?.includes(idx)
-        ? prev[step].filter((x) => x !== idx)
-        : [...(prev[step] || []), idx],
-    }));
+  const handleAnswer = (answerIdx) => {
+    let newAnswers = { ...answers };
+    if (Array.isArray(q.correct) && q.correct.length > 1) {
+      // Мультивибір
+      newAnswers[q.id] = newAnswers[q.id] || [];
+      if (newAnswers[q.id].includes(answerIdx)) {
+        newAnswers[q.id] = newAnswers[q.id].filter((a) => a !== answerIdx);
+      } else {
+        newAnswers[q.id] = [...newAnswers[q.id], answerIdx];
+      }
+    } else {
+      newAnswers[q.id] = [answerIdx];
+    }
+    setAnswers(newAnswers);
+  };
+
+  const handleNext = () => {
+    if (current < questions.length - 1) setCurrent(current + 1);
+  };
+  const handlePrev = () => {
+    if (current > 0) setCurrent(current - 1);
   };
 
   const handleFinish = () => {
-    // можна доопрацювати відправку результатів
-    navigate("/result", { state: { fio, theme, answers } });
+    // Запрос на бекенд
+    fetch("/api/result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pib,
+        theme: themeId,
+        answers,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        navigate(`/result?score=${data.score || 0}&pib=${encodeURIComponent(pib)}`);
+      })
+      .catch(() => {
+        navigate(`/result?error=1`);
+      });
   };
 
+  // Прогрес-бар
+  const progress = Math.round(
+    (Object.keys(answers).length / questions.length) * 100
+  );
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-4">
-      <div className="w-full max-w-xl p-6 bg-yellow-50 rounded-2xl shadow-lg mb-4">
-        <div className="text-gray-600 mb-2">
-          <span className="font-bold">Питання {step + 1} із {questions.length}</span>
+    <div className="container py-4" style={{ maxWidth: 700 }}>
+      <div className="mb-3">
+        <div className="progress" style={{ height: 16 }}>
+          <div
+            className="progress-bar"
+            style={{ width: `${progress}%` }}
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >{progress}%</div>
         </div>
-        <div className="text-xl font-semibold mb-4">{q.question}</div>
-        <div className="flex flex-col gap-2 mb-6">
-          {q.answers.map((a, idx) => (
-            <label key={idx} className="flex items-center gap-2 text-lg">
-              <input
-                type="checkbox"
-                checked={answers[step]?.includes(idx) || false}
-                onChange={() => handleChange(idx)}
-                className="accent-blue-600"
-              />
-              {a}
-            </label>
-          ))}
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
-            className="bg-gray-200 hover:bg-gray-300 rounded-xl px-6 py-2 text-lg"
-            disabled={step === 0}
-          >
-            Назад
-          </button>
-          {step < questions.length - 1 ? (
-            <button
-              onClick={() => setStep((s) => Math.min(questions.length - 1, s + 1))}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-2 text-lg"
-            >
-              Вперед
-            </button>
-          ) : (
-            <button
-              onClick={handleFinish}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-6 py-2 text-lg"
-            >
-              Завершити
-            </button>
-          )}
-        </div>
-        {/* Прогрес-лента */}
-        <div className="flex gap-1 mt-6">
-          {questions.map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 flex-1 rounded-xl ${answers[i] ? "bg-blue-600" : "bg-gray-200"}`}
+      </div>
+      <h4 className="mb-3">Питання {current + 1} з {questions.length}</h4>
+      <div className="mb-4">
+        <div className="fs-5 mb-2">{q.question}</div>
+        {q.answers.map((ans, idx) => (
+          <div className="form-check mb-2" key={idx}>
+            <input
+              className="form-check-input"
+              type={Array.isArray(q.correct) && q.correct.length > 1 ? "checkbox" : "radio"}
+              name={`q_${q.id}`}
+              id={`q_${q.id}_a${idx}`}
+              checked={answers[q.id]?.includes(idx) || false}
+              onChange={() => handleAnswer(idx)}
             />
-          ))}
-        </div>
+            <label className="form-check-label" htmlFor={`q_${q.id}_a${idx}`}>
+              {ans}
+            </label>
+          </div>
+        ))}
+      </div>
+      <div className="d-flex justify-content-between">
+        <button className="btn btn-secondary" disabled={current === 0} onClick={handlePrev}>Назад</button>
+        {current < questions.length - 1 ? (
+          <button className="btn btn-primary" onClick={handleNext}>Вперед</button>
+        ) : (
+          <button className="btn btn-success" onClick={handleFinish}>Завершити</button>
+        )}
       </div>
     </div>
   );
