@@ -16,7 +16,6 @@ export default function Test() {
     fetch(`/api/questions/${encodeURIComponent(themeId)}`)
       .then((res) => res.json())
       .then((data) => {
-        // Универсальный разбор: data.questions (объект), либо массив
         let arr = [];
         if (Array.isArray(data)) arr = data;
         else if (Array.isArray(data.questions)) arr = data.questions;
@@ -35,11 +34,12 @@ export default function Test() {
   if (!questions || !questions.length) return <div className="alert alert-info mt-4 text-center">Немає питань для цієї теми.</div>;
 
   const q = questions[current];
+  const options = q.options || q.answers || [];
 
   const handleAnswer = (answerIdx) => {
     let newAnswers = { ...answers };
+    // correct может быть не всегда, считаем мультивыбор если correct - массив >1
     if (Array.isArray(q.correct) && q.correct.length > 1) {
-      // Мультивибір
       newAnswers[q.id] = newAnswers[q.id] || [];
       if (newAnswers[q.id].includes(answerIdx)) {
         newAnswers[q.id] = newAnswers[q.id].filter((a) => a !== answerIdx);
@@ -60,7 +60,6 @@ export default function Test() {
   };
 
   const handleFinish = () => {
-    // Запрос на бекенд
     fetch("/api/result", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -80,9 +79,9 @@ export default function Test() {
   };
 
   // Прогрес-бар
-  const progress = Math.round(
-    (Object.keys(answers).length / questions.length) * 100
-  );
+  const progress = questions.length
+    ? Math.round((Object.keys(answers).length / questions.length) * 100)
+    : 0;
 
   return (
     <div className="container py-4" style={{ maxWidth: 700 }}>
@@ -101,7 +100,7 @@ export default function Test() {
       <h4 className="mb-3">Питання {current + 1} з {questions.length}</h4>
       <div className="mb-4">
         <div className="fs-5 mb-2">{q.question}</div>
-        {(q.answers || []).map((ans, idx) => (
+        {(options || []).map((ans, idx) => (
           <div className="form-check mb-2" key={idx}>
             <input
               className="form-check-input"
