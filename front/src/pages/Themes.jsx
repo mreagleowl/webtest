@@ -3,28 +3,46 @@ import { Link } from "react-router-dom";
 
 export default function Themes() {
   const [themes, setThemes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch("/api/themes")
-      .then((r) => r.json())
-      .then(setThemes)
-      .catch(() => setThemes([]));
+      .then((res) => res.json())
+      .then((data) => {
+        setThemes(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError("Не вдалося завантажити теми.");
+        setLoading(false);
+      });
   }, []);
 
+  if (loading) return <div className="text-center mt-5">Завантаження...</div>;
+  if (error) return <div className="alert alert-danger mt-4 text-center">{error}</div>;
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-4">
-      <h2 className="text-3xl font-bold mb-6 text-blue-700">Оберіть тему тесту</h2>
-      <div className="w-full max-w-xl grid gap-4">
-        {themes.map((theme) => (
-          <Link
-            key={theme.id}
-            to={`/fio?theme=${theme.id}`}
-            className="block bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-2xl shadow-md p-6 transition"
-          >
-            <div className="text-xl font-semibold text-gray-800">{theme.title}</div>
-            <div className="text-sm text-gray-500">Кількість питань: {theme.num_questions}</div>
-          </Link>
+    <div className="container py-5">
+      <h2 className="mb-4 text-center">Оберіть тему тесту</h2>
+      <div className="row justify-content-center">
+        {themes.map((theme, idx) => (
+          <div className="col-md-6 col-lg-4 mb-4" key={idx}>
+            <div className="card h-100">
+              <div className="card-body d-flex flex-column justify-content-between">
+                <h5 className="card-title">{theme.title}</h5>
+                <p className="card-text mb-2">Питань у темі: <b>{theme.total_questions}</b></p>
+                <p className="card-text mb-3">Буде задано: <b>{theme.num_questions}</b></p>
+                <Link to={`/pib?theme=${encodeURIComponent(theme.id)}`} className="btn btn-primary btn-lg mt-auto">
+                  Вибрати
+                </Link>
+              </div>
+            </div>
+          </div>
         ))}
+      </div>
+      <div className="text-center mt-4">
+        <Link to="/" className="btn btn-outline-secondary btn-lg">Назад</Link>
       </div>
     </div>
   );
