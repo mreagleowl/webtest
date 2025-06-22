@@ -35,19 +35,16 @@ export default function Test() {
 
   const q = questions[current];
   const options = q.options || q.answers || [];
-  const isMulti = Array.isArray(q.correct) && q.correct.length > 1;
+  // ВСЕГДА чекбоксы, даже если правильный только один
+  const isMulti = true;
 
   const handleAnswer = (answerIdx) => {
     let newAnswers = { ...answers };
-    if (isMulti) {
-      newAnswers[q.id] = newAnswers[q.id] || [];
-      if (newAnswers[q.id].includes(answerIdx)) {
-        newAnswers[q.id] = newAnswers[q.id].filter((a) => a !== answerIdx);
-      } else {
-        newAnswers[q.id] = [...newAnswers[q.id], answerIdx];
-      }
+    newAnswers[q.id] = newAnswers[q.id] || [];
+    if (newAnswers[q.id].includes(answerIdx)) {
+      newAnswers[q.id] = newAnswers[q.id].filter((a) => a !== answerIdx);
     } else {
-      newAnswers[q.id] = [answerIdx];
+      newAnswers[q.id] = [...newAnswers[q.id], answerIdx];
     }
     setAnswers(newAnswers);
   };
@@ -117,8 +114,8 @@ export default function Test() {
           <div className="form-check mb-2" key={idx}>
             <input
               className="form-check-input"
-              type={isMulti ? "checkbox" : "radio"}
-              name={`q_${q.id}`}
+              type="checkbox"
+              name={`q_${q.id}_${idx}`}
               id={`q_${q.id}_a${idx}`}
               checked={answers[q.id]?.includes(idx) || false}
               onChange={() => handleAnswer(idx)}
@@ -128,7 +125,7 @@ export default function Test() {
             </label>
           </div>
         ))}
-        {isMulti && <div className="form-text">Можна обрати декілька відповідей</div>}
+        <div className="form-text">Можна обрати одну або декілька відповідей</div>
       </div>
       <div className="d-flex justify-content-between">
         <button className="btn btn-secondary" disabled={current === 0} onClick={handlePrev}>Назад</button>
