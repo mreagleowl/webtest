@@ -61,14 +61,43 @@ def get_questions(theme_id: str):
 
 @app.post("/api/result")
 async def save_result(payload: dict):
-    fio = payload.get("fio", "")
+    fio = payload.get("fio", "") or payload.get("pib", "")
     theme = payload.get("theme", "")
+    answers = payload.get("answers", {})
+    # 1. Находим оригинальный файл темы
+    fpath = os.path.join(QUESTIONS_DIR, theme + ".json")
+    if not os.path.exists(fpath):
+        raise HTTPException(status_code=404, detail="Тема не знайдена")
+    with open(fpath, encoding="utf-8") as f:
+        theme_data = json.load(f)
+    original_questions = theme_data["questions"]
+    # 2. Подсчёт баллов
+    total = len(answers)
+    correct = 0
+    for q in original_questions:
+        qid = str(q["id"])
+        user_ans = answers.get(qid) or answers.get(int(q["id"]))
+        if user_ans is None:
+            continue
+        # Сравниваем как множества (порядок не важен)
+        if set(user_ans) == set(q.get("correct", [])):
+            correct += 1
+    score = correct
+    percent = (correct / total * 100) if total else 0
+    # 3. Сохраняем результат
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     fname = f"{timestamp}_{fio.replace(' ', '_')}_{theme}.json"
-    fpath = os.path.join(RESULTS_DIR, fname)
-    with open(fpath, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-    return {"status": "ok"}
+    fpath_result = os.path.join(RESULTS_DIR, fname)
+    to_save = {
+        **payload,
+        "score": score,
+        "percent": percent,
+        "total": total,
+        "correct": correct
+    }
+    with open(fpath_result, "w", encoding="utf-8") as f:
+        json.dump(to_save, f, ensure_ascii=False, indent=2)
+    return {"score": score, "percent": percent, "total": total, "correct": correct}
 
 @app.post("/api/admin/convert")
 async def convert_questions(
