@@ -1,45 +1,44 @@
 import React, { useState } from "react";
 
-const DEMO_JSON = {
-  "title": "Основи охорони праці",
-  "num_questions": 3,
-  "total_questions": 3,
-  "questions": [
-    {
-      "id": 1,
-      "question": "Чи можна працювати на токарному верстаті без інструктажу з охорони праці?",
-      "options": [
-        "Якщо людина досвідчена",
-        "Можна після трьох змін практики",
-        "Заборонено",
-        "Так, якщо є медична довідка"
-      ],
-      "correct": [2]
-    },
-    {
-      "id": 2,
-      "question": "Який мінімальний вік для роботи на висоті?",
-      "options": [
-        "16 років",
-        "18 років",
-        "21 рік",
-        "Будь-який, якщо є інструктаж"
-      ],
-      "correct": [1]
-    },
-    {
-      "id": 3,
-      "question": "Що обов'язково мати при роботі з електроінструментом?",
-      "options": [
-        "Інструкція з охорони праці",
-        "Медична довідка",
-        "Дозвіл від керівника",
-        "Жилет зі світловідбивачем"
-      ],
-      "correct": [0]
+function parseTxt(content) {
+  // Разбиваем на строки, режем по вопросам
+  const lines = content.split(/\r?\n/).map(l => l.trim());
+  const questions = [];
+  let cur = null;
+  let id = 1;
+
+  function parseCorrect(val) {
+    // 'В' или 'В, Б' -> массив индексов
+    const letterArr = val.replace(/[✅Правильна відповідь:]/g, '').replace(/[^АБВГ,]/g, '').split(',').map(x => x.trim()).filter(Boolean);
+    // Приводим буквы к индексу
+    const letterToIdx = { 'А': 0, 'Б': 1, 'В': 2, 'Г': 3 };
+    return letterArr.map(l => letterToIdx[l]).filter(x => x !== undefined);
+  }
+
+  lines.forEach(line => {
+    const qMatch = line.match(/^(\d+)\.\s*(.+)$/);
+    const optMatch = line.match(/^([АБВГ])\.\s*(.+)$/);
+    const correctMatch = line.match(/^✅\s*Правильна відповідь:\s*(.+)$/i);
+    if (qMatch) {
+      // Новый вопрос
+      if (cur) questions.push(cur);
+      cur = { id: id++, question: qMatch[2], options: [], correct: [] };
+    } else if (optMatch && cur) {
+      cur.options.push(optMatch[2]);
+    } else if (correctMatch && cur) {
+      cur.correct = parseCorrect(correctMatch[1]);
     }
-  ]
-};
+  });
+  if (cur) questions.push(cur);
+  // Простой автотайтл
+  const title = questions[0]?.question?.slice(0, 30) || "Тема тесту";
+  return {
+    title,
+    num_questions: questions.length,
+    total_questions: questions.length,
+    questions
+  };
+}
 
 export default function Admin() {
   const [logged, setLogged] = useState(false);
@@ -66,16 +65,28 @@ export default function Admin() {
     const file = e.target.files[0];
     if (!file) return;
     setUploaded(file.name);
-    // ТЕСТОВАЯ заглушка
-    setJson({ ...DEMO_JSON, total_questions: DEMO_JSON.questions.length, num_questions: DEMO_JSON.questions.length });
-    setTitle(DEMO_JSON.title);
-    setNumQuestions(DEMO_JSON.questions.length);
     setSaved(false);
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const parsed = parseTxt(ev.target.result);
+        if (!parsed.questions.length) throw new Error("Не знайдено питань у файлі!");
+        setJson(parsed);
+        setTitle(parsed.title);
+        setNumQuestions(parsed.questions.length);
+      } catch (err) {
+        setJson(null);
+        setError("Помилка розбору: " + err.message);
+      }
+    };
+    reader.readAsText(file, "utf-8");
   };
 
   const handleSave = async () => {
     if (!json || !title || !numQuestions) return;
     setSaving(true);
+    setError(null);
     const toSend = {
       ...json,
       title: title.trim(),
@@ -127,8 +138,8 @@ export default function Admin() {
     <div className="container py-5" style={{ maxWidth: 600 }}>
       <h2 className="mb-4 text-center">Конвертація питань із файлів</h2>
       <div className="mb-3">
-        <label className="form-label fs-5">Виберіть файл (Word/txt):</label>
-        <input type="file" className="form-control" accept=".txt,.doc,.docx" onChange={handleFile} />
+        <label className="form-label fs-5">Виберіть файл (txt):</label>
+        <input type="file" className="form-control" accept=".txt" onChange={handleFile} />
       </div>
       {uploaded && json && (
         <>
@@ -149,6 +160,9 @@ export default function Admin() {
       )}
       {json && (
         <pre className="bg-light p-3 rounded small" style={{ maxHeight: 300, overflow: "auto" }}>{JSON.stringify(json, null, 2)}</pre>
+      )}
+      {error && (
+        <div className="alert alert-danger py-2 mt-3">{error}</div>
       )}
     </div>
   );
