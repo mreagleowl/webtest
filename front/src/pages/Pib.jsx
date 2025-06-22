@@ -17,6 +17,10 @@ export default function Pib() {
     navigate(`/test?theme=${encodeURIComponent(themeId)}&pib=${encodeURIComponent(pib)}`);
   };
 
+  const handleBack = () => {
+    navigate('/themes');
+  };
+
   return (
     <div className="container d-flex flex-column align-items-center justify-content-center min-vh-100">
       <h2 className="mb-4">Введіть ПІБ для початку тестування</h2>
@@ -32,7 +36,10 @@ export default function Pib() {
           />
         </div>
         {error && <div className="alert alert-danger py-2">{error}</div>}
-        <button type="submit" className="btn btn-primary btn-lg w-100">Далі</button>
+        <div className="d-flex justify-content-between">
+          <button type="button" className="btn btn-outline-secondary btn-lg me-2" onClick={handleBack}>Назад</button>
+          <button type="submit" className="btn btn-primary btn-lg">Далі</button>
+        </div>
       </form>
     </div>
   );
