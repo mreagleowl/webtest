@@ -13,7 +13,7 @@ export default function Test() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`/api/questions?theme=${encodeURIComponent(themeId)}`)
+    fetch(`/api/questions/${encodeURIComponent(themeId)}`)
       .then((res) => res.json())
       .then((data) => {
         setQuestions(data.questions || []);
