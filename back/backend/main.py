@@ -64,27 +64,38 @@ async def save_result(payload: dict):
     fio = payload.get("fio", "") or payload.get("pib", "")
     theme = payload.get("theme", "")
     answers = payload.get("answers", {})
-    # 1. Находим оригинальный файл темы
     fpath = os.path.join(QUESTIONS_DIR, theme + ".json")
     if not os.path.exists(fpath):
         raise HTTPException(status_code=404, detail="Тема не знайдена")
     with open(fpath, encoding="utf-8") as f:
         theme_data = json.load(f)
     original_questions = theme_data["questions"]
-    # 2. Подсчёт баллов
-    total = len(answers)
-    correct = 0
-    for q in original_questions:
-        qid = str(q["id"])
-        user_ans = answers.get(qid) or answers.get(int(q["id"]))
-        if user_ans is None:
+    # Сопоставим по qid (id из исходного пула)
+    answer_items = []
+    correct_count = 0
+    total = 0
+    # Формируем быстрый поиск по qid
+    qid_map = {str(q['id']): q for q in original_questions}
+    for qid, user_ans in answers.items():
+        q = qid_map.get(str(qid))
+        if not q:
             continue
-        # Сравниваем как множества (порядок не важен)
-        if set(user_ans) == set(q.get("correct", [])):
-            correct += 1
-    score = correct
-    percent = (correct / total * 100) if total else 0
-    # 3. Сохраняем результат
+        # Сравниваем множества индексов
+        correct_indices = q.get("correct", [])
+        if set(user_ans) == set(correct_indices):
+            correct_count += 1
+        total += 1
+        # Привести к "человеческому" виду (с 1)
+        user_ans_h = [i + 1 for i in user_ans]
+        correct_h = [i + 1 for i in correct_indices]
+        answer_items.append({
+            "qid": q["id"],
+            "question": q["question"],
+            "user_answers": user_ans_h,
+            "correct_answers": correct_h
+        })
+    score = correct_count
+    percent = (score / total * 100) if total else 0
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     fname = f"{timestamp}_{fio.replace(' ', '_')}_{theme}.json"
     fpath_result = os.path.join(RESULTS_DIR, fname)
@@ -93,11 +104,18 @@ async def save_result(payload: dict):
         "score": score,
         "percent": percent,
         "total": total,
-        "correct": correct
+        "correct": correct_count,
+        "details": answer_items
     }
     with open(fpath_result, "w", encoding="utf-8") as f:
         json.dump(to_save, f, ensure_ascii=False, indent=2)
-    return {"score": score, "percent": percent, "total": total, "correct": correct}
+    return {
+        "score": score,
+        "percent": percent,
+        "total": total,
+        "correct": correct_count,
+        "details": answer_items
+    }
 
 @app.post("/api/admin/convert")
 async def convert_questions(
