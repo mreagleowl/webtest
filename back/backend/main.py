@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -91,3 +91,17 @@ async def convert_questions(
         json.dump(data, f, ensure_ascii=False, indent=2)
     return {"status": "ok", "saved_as": fname}
 
+# --- Новый эндпоинт для загрузки темы из JSON (TXT-конвертер на фронте)
+@app.post("/api/themes/upload")
+async def upload_theme(request: Request):
+    data = await request.json()
+    title = data.get("title") or "theme"
+    filename = f"{title.replace(' ', '_').lower()}.json"
+    path = os.path.join(QUESTIONS_DIR, filename)
+    os.makedirs(QUESTIONS_DIR, exist_ok=True)
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Не вдалося зберегти: {e}")
+    return {"ok": True, "filename": filename}
