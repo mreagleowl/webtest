@@ -78,25 +78,36 @@ export default function Test() {
       });
   };
 
-  // Прогрес-бар
-  const progress = questions.length
-    ? Math.round((Object.keys(answers).length / questions.length) * 100)
-    : 0;
+  // Прогрес-бар с сегментами (по количеству вопросов)
+  const renderProgressBar = () => {
+    return (
+      <div className="d-flex mb-4" style={{ gap: 4 }}>
+        {questions.map((q, idx) => {
+          const isActive = answers[q.id] && answers[q.id].length > 0;
+          return (
+            <div
+              key={q.id}
+              style={{
+                flex: 1,
+                height: 18,
+                background: isActive ? "#198754" : "#e9ecef",
+                borderRadius: 2,
+                border: idx === current ? '2px solid #0d6efd' : '1px solid #adb5bd',
+                transition: 'all 0.15s',
+                cursor: 'pointer'
+              }}
+              title={`Перейти до питання ${idx + 1}`}
+              onClick={() => setCurrent(idx)}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="container py-4" style={{ maxWidth: 700 }}>
-      <div className="mb-3">
-        <div className="progress" style={{ height: 16 }}>
-          <div
-            className="progress-bar"
-            style={{ width: `${progress}%` }}
-            role="progressbar"
-            aria-valuenow={progress}
-            aria-valuemin="0"
-            aria-valuemax="100"
-          >{progress}%</div>
-        </div>
-      </div>
+      {renderProgressBar()}
       <h4 className="mb-3">Питання {current + 1} з {questions.length}</h4>
       <div className="mb-4">
         <div className="fs-5 mb-2">{q.question}</div>
