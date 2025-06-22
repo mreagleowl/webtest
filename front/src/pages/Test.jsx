@@ -16,8 +16,13 @@ export default function Test() {
     fetch(`/api/questions/${encodeURIComponent(themeId)}`)
       .then((res) => res.json())
       .then((data) => {
-        setQuestions(data.questions || []);
+        // Универсальный разбор: data.questions (объект), либо массив
+        let arr = [];
+        if (Array.isArray(data)) arr = data;
+        else if (Array.isArray(data.questions)) arr = data.questions;
+        setQuestions(arr);
         setLoading(false);
+        console.log("Ответ API:", data);
       })
       .catch(() => {
         setError("Не вдалося завантажити питання.");
@@ -27,7 +32,7 @@ export default function Test() {
 
   if (loading) return <div className="text-center mt-5">Завантаження...</div>;
   if (error) return <div className="alert alert-danger mt-4 text-center">{error}</div>;
-  if (!questions.length) return <div className="alert alert-info mt-4 text-center">Немає питань для цієї теми.</div>;
+  if (!questions || !questions.length) return <div className="alert alert-info mt-4 text-center">Немає питань для цієї теми.</div>;
 
   const q = questions[current];
 
@@ -96,7 +101,7 @@ export default function Test() {
       <h4 className="mb-3">Питання {current + 1} з {questions.length}</h4>
       <div className="mb-4">
         <div className="fs-5 mb-2">{q.question}</div>
-        {q.answers.map((ans, idx) => (
+        {(q.answers || []).map((ans, idx) => (
           <div className="form-check mb-2" key={idx}>
             <input
               className="form-check-input"
