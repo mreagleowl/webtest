@@ -35,11 +35,11 @@ export default function Test() {
 
   const q = questions[current];
   const options = q.options || q.answers || [];
+  const isMulti = Array.isArray(q.correct) && q.correct.length > 1;
 
   const handleAnswer = (answerIdx) => {
     let newAnswers = { ...answers };
-    // correct может быть не всегда, считаем мультивыбор если correct - массив >1
-    if (Array.isArray(q.correct) && q.correct.length > 1) {
+    if (isMulti) {
       newAnswers[q.id] = newAnswers[q.id] || [];
       if (newAnswers[q.id].includes(answerIdx)) {
         newAnswers[q.id] = newAnswers[q.id].filter((a) => a !== answerIdx);
@@ -60,13 +60,17 @@ export default function Test() {
   };
 
   const handleFinish = () => {
+    // Удаляем неотвеченные вопросы
+    const filteredAnswers = Object.fromEntries(
+      Object.entries(answers).filter(([qid, arr]) => arr && arr.length > 0)
+    );
     fetch("/api/result", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         pib,
         theme: themeId,
-        answers,
+        answers: filteredAnswers,
       }),
     })
       .then((r) => r.json())
@@ -79,31 +83,29 @@ export default function Test() {
   };
 
   // Прогрес-бар с сегментами (по количеству вопросов)
-  const renderProgressBar = () => {
-    return (
-      <div className="d-flex mb-4" style={{ gap: 4 }}>
-        {questions.map((q, idx) => {
-          const isActive = answers[q.id] && answers[q.id].length > 0;
-          return (
-            <div
-              key={q.id}
-              style={{
-                flex: 1,
-                height: 18,
-                background: isActive ? "#198754" : "#e9ecef",
-                borderRadius: 2,
-                border: idx === current ? '2px solid #0d6efd' : '1px solid #adb5bd',
-                transition: 'all 0.15s',
-                cursor: 'pointer'
-              }}
-              title={`Перейти до питання ${idx + 1}`}
-              onClick={() => setCurrent(idx)}
-            />
-          );
-        })}
-      </div>
-    );
-  };
+  const renderProgressBar = () => (
+    <div className="d-flex mb-4" style={{ gap: 4 }}>
+      {questions.map((qst, idx) => {
+        const answered = answers[qst.id] && answers[qst.id].length > 0;
+        return (
+          <div
+            key={qst.id}
+            style={{
+              flex: 1,
+              height: 18,
+              background: answered ? "#198754" : "#e9ecef",
+              borderRadius: 2,
+              border: idx === current ? '2px solid #0d6efd' : '1px solid #adb5bd',
+              transition: 'all 0.15s',
+              cursor: 'pointer'
+            }}
+            title={`Перейти до питання ${idx + 1}`}
+            onClick={() => setCurrent(idx)}
+          />
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="container py-4" style={{ maxWidth: 700 }}>
@@ -115,7 +117,7 @@ export default function Test() {
           <div className="form-check mb-2" key={idx}>
             <input
               className="form-check-input"
-              type={Array.isArray(q.correct) && q.correct.length > 1 ? "checkbox" : "radio"}
+              type={isMulti ? "checkbox" : "radio"}
               name={`q_${q.id}`}
               id={`q_${q.id}_a${idx}`}
               checked={answers[q.id]?.includes(idx) || false}
@@ -126,6 +128,7 @@ export default function Test() {
             </label>
           </div>
         ))}
+        {isMulti && <div className="form-text">Можна обрати декілька відповідей</div>}
       </div>
       <div className="d-flex justify-content-between">
         <button className="btn btn-secondary" disabled={current === 0} onClick={handlePrev}>Назад</button>
