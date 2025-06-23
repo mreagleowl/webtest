@@ -55,3 +55,4 @@ Desktop.ini
 
 # Для production (если не нужно хранить результаты тестов)
 results/
+questions/
