@@ -21,7 +21,6 @@ export default function Test() {
         else if (Array.isArray(data.questions)) arr = data.questions;
         setQuestions(arr);
         setLoading(false);
-        console.log("Ответ API:", data);
       })
       .catch(() => {
         setError("Не вдалося завантажити питання.");
@@ -34,8 +33,8 @@ export default function Test() {
   if (!questions || !questions.length) return <div className="alert alert-info mt-4 text-center">Немає питань для цієї теми.</div>;
 
   const q = questions[current];
-  const options = q.options || q.answers || [];
-  // ВСЕГДА чекбоксы, даже если правильный только один
+  // --- БАГФИКС: всегда рендерить все варианты ---
+  const options = Array.isArray(q.options) ? q.options : (q.answers || []);
   const isMulti = true;
 
   const handleAnswer = (answerIdx) => {
@@ -105,10 +104,10 @@ export default function Test() {
   );
 
   return (
-    <div className="container py-4" style={{ maxWidth: 700 }}>
+    <div className="container py-4 d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "100vh", maxWidth: 700 }}>
       {renderProgressBar()}
       <h4 className="mb-3">Питання {current + 1} з {questions.length}</h4>
-      <div className="mb-4">
+      <div className="mb-4 w-100">
         <div className="fs-5 mb-2">{q.question}</div>
         {(options || []).map((ans, idx) => (
           <div className="form-check mb-2" key={idx}>
@@ -127,7 +126,7 @@ export default function Test() {
         ))}
         <div className="form-text">Можна обрати одну або декілька відповідей</div>
       </div>
-      <div className="d-flex justify-content-between">
+      <div className="d-flex justify-content-between w-100">
         <button className="btn btn-secondary" disabled={current === 0} onClick={handlePrev}>Назад</button>
         {current < questions.length - 1 ? (
           <button className="btn btn-primary" onClick={handleNext}>Вперед</button>
