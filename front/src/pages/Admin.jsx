@@ -6,13 +6,14 @@ function parseTxt(content) {
   let cur = null;
   let id = 1;
   function parseCorrect(val) {
-    const letterArr = val.replace(/[✅Правильна відповідь:]/g, '').replace(/[^АБВГ,]/g, '').split(',').map(x => x.trim()).filter(Boolean);
-    const letterToIdx = { 'А': 0, 'Б': 1, 'В': 2, 'Г': 3 };
+    const letterArr = val.replace(/[✅Правильна відповідь:]/g, '').replace(/[^АБВГ,ДЕЖЗИКЛМНОПРСТУФХЦЧШЩЬЮЯ,]/g, '').split(',').map(x => x.trim()).filter(Boolean);
+    const letters = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЬЮЯ'.split('');
+    const letterToIdx = Object.fromEntries(letters.map((l, i) => [l, i]));
     return letterArr.map(l => letterToIdx[l]).filter(x => x !== undefined);
   }
   lines.forEach(line => {
     const qMatch = line.match(/^(\d+)\.\s*(.+)$/);
-    const optMatch = line.match(/^([АБВГ])\.\s*(.+)$/);
+    const optMatch = line.match(/^([АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЬЮЯ])\.\s*(.+)$/);
     const correctMatch = line.match(/^✅\s*Правильна відповідь:\s*(.+)$/i);
     if (qMatch) {
       if (cur) questions.push(cur);
@@ -214,7 +215,7 @@ export default function Admin() {
                 <th>Назва теми</th>
                 <th>Питань</th>
                 <th>Кількість на тест</th>
-                <th></th>
+                <th style={{ minWidth: 200 }}></th>
               </tr>
             </thead>
             <tbody>
@@ -225,9 +226,11 @@ export default function Admin() {
                     <td><input type="text" className="form-control" value={editing.title} onChange={e => setEditing({ ...editing, title: e.target.value })} /></td>
                     <td>{t.total_questions || t.num_questions}</td>
                     <td><input type="number" className="form-control" value={editing.num_questions} min={1} max={t.total_questions || t.num_questions} onChange={e => setEditing({ ...editing, num_questions: e.target.value })} /></td>
-                    <td>
-                      <button className="btn btn-success btn-sm me-2" onClick={handleEditSave}>Зберегти</button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => setEditing(null)}>Відмінити</button>
+                    <td style={{ minWidth: 200 }}>
+                      <div className="d-flex flex-row flex-wrap gap-2 justify-content-center align-items-center">
+                        <button className="btn btn-success btn-sm" style={{ minWidth: 95 }} onClick={handleEditSave}>Зберегти</button>
+                        <button className="btn btn-secondary btn-sm" style={{ minWidth: 95 }} onClick={() => setEditing(null)}>Відмінити</button>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -236,9 +239,11 @@ export default function Admin() {
                     <td>{t.title}</td>
                     <td>{t.total_questions || t.num_questions}</td>
                     <td>{t.num_questions}</td>
-                    <td>
-                      <button className="btn btn-outline-primary btn-sm me-2" onClick={() => handleEdit(t)}>Редагувати</button>
-                      <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(t.id)}>Видалити</button>
+                    <td style={{ minWidth: 200 }}>
+                      <div className="d-flex flex-row flex-wrap gap-2 justify-content-center align-items-center">
+                        <button className="btn btn-outline-primary btn-sm" style={{ minWidth: 95 }} onClick={() => handleEdit(t)}>Редагувати</button>
+                        <button className="btn btn-outline-danger btn-sm" style={{ minWidth: 95 }} onClick={() => handleDelete(t.id)}>Видалити</button>
+                      </div>
                     </td>
                   </tr>
                 )
