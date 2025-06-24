@@ -226,8 +226,8 @@ export default function Admin() {
                     <td><input type="text" className="form-control" value={editing.title} onChange={e => setEditing({ ...editing, title: e.target.value })} /></td>
                     <td>{t.total_questions || t.num_questions}</td>
                     <td><input type="number" className="form-control" value={editing.num_questions} min={1} max={t.total_questions || t.num_questions} onChange={e => setEditing({ ...editing, num_questions: e.target.value })} /></td>
-                    <td style={{ minWidth: 200 }}>
-                      <div className="d-flex flex-row flex-wrap gap-2 justify-content-center align-items-center">
+                    <td style={{ minWidth: 210, whiteSpace: "nowrap" }}>
+                      <div className="d-flex flex-row justify-content-center align-items-center" style={{ gap: 10 }}>
                         <button className="btn btn-success btn-sm" style={{ minWidth: 95 }} onClick={handleEditSave}>Зберегти</button>
                         <button className="btn btn-secondary btn-sm" style={{ minWidth: 95 }} onClick={() => setEditing(null)}>Відмінити</button>
                       </div>
@@ -239,8 +239,8 @@ export default function Admin() {
                     <td>{t.title}</td>
                     <td>{t.total_questions || t.num_questions}</td>
                     <td>{t.num_questions}</td>
-                    <td style={{ minWidth: 200 }}>
-                      <div className="d-flex flex-row flex-wrap gap-2 justify-content-center align-items-center">
+                    <td style={{ minWidth: 210, whiteSpace: "nowrap" }}>
+                      <div className="d-flex flex-row justify-content-center align-items-center" style={{ gap: 10 }}>
                         <button className="btn btn-outline-primary btn-sm" style={{ minWidth: 95 }} onClick={() => handleEdit(t)}>Редагувати</button>
                         <button className="btn btn-outline-danger btn-sm" style={{ minWidth: 95 }} onClick={() => handleDelete(t.id)}>Видалити</button>
                       </div>
