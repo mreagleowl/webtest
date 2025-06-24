@@ -152,3 +152,31 @@ async def upload_theme(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Не вдалося зберегти: {e}")
     return {"ok": True, "filename": filename}
+
+# --- Новый эндпоинт: удаление темы по id (имени файла) ---
+@app.delete("/api/themes/{theme_id}")
+def delete_theme(theme_id: str):
+    path = os.path.join(QUESTIONS_DIR, theme_id + ".json")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Тема не знайдена")
+    os.remove(path)
+    return {"ok": True, "deleted": theme_id}
+
+# --- Новый эндпоинт: редактирование темы (названия/кол-ва вопросов) ---
+@app.put("/api/themes/{theme_id}")
+def update_theme(theme_id: str, payload: dict):
+    path = os.path.join(QUESTIONS_DIR, theme_id + ".json")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Тема не знайдена")
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    # Обновить поля
+    title = payload.get("title")
+    num_questions = payload.get("num_questions")
+    if title is not None:
+        data["title"] = title
+    if num_questions is not None:
+        data["num_questions"] = int(num_questions)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return {"ok": True, "theme": theme_id, "updated": True}
