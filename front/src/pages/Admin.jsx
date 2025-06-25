@@ -6,7 +6,7 @@ function parseTxt(content) {
   let cur = null;
   let id = 1;
   function parseCorrect(val) {
-    const letterArr = val.replace(/[✅Правильна відповідь:]/g, '').replace(/[^АБВГ,ДЕЖЗИКЛМНОПРСТУФХЦЧШЩЬЮЯ,]/g, '').split(',').map(x => x.trim()).filter(Boolean);
+    const letterArr = val.replace(/[✅Правильна відповідь:]/g, '').replace(/[^АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЬЮЯ,]/g, '').split(',').map(x => x.trim()).filter(Boolean);
     const letters = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЬЮЯ'.split('');
     const letterToIdx = Object.fromEntries(letters.map((l, i) => [l, i]));
     return letterArr.map(l => letterToIdx[l]).filter(x => x !== undefined);
