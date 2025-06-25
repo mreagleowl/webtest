@@ -33,7 +33,6 @@ export default function Test() {
   if (!questions || !questions.length) return <div className="alert alert-info mt-4 text-center">Немає питань для цієї теми.</div>;
 
   const q = questions[current];
-  // --- БАГФИКС: всегда рендерить все варианты ---
   const options = Array.isArray(q.options) ? q.options : (q.answers || []);
   const isMulti = true;
 
@@ -78,11 +77,12 @@ export default function Test() {
       });
   };
 
-  // Прогрес-бар с сегментами (по количеству вопросов)
+  // --- Новый прогресс-бар (сегменты, Bootstrap) ---
   const renderProgressBar = () => (
     <div className="d-flex mb-4" style={{ gap: 4 }}>
       {questions.map((qst, idx) => {
         const answered = answers[qst.id] && answers[qst.id].length > 0;
+        const active = idx === current;
         return (
           <div
             key={qst.id}
@@ -91,7 +91,7 @@ export default function Test() {
               height: 18,
               background: answered ? "#198754" : "#e9ecef",
               borderRadius: 2,
-              border: idx === current ? '2px solid #0d6efd' : '1px solid #adb5bd',
+              border: active ? '2px solid #0d6efd' : '1px solid #adb5bd',
               transition: 'all 0.15s',
               cursor: 'pointer'
             }}
