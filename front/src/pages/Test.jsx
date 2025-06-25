@@ -70,16 +70,16 @@ export default function Test() {
     })
       .then((r) => r.json())
       .then((data) => {
-        navigate(`/result?score=${data.score || 0}&pib=${encodeURIComponent(pib)}`);
+        navigate(`/result?score=${data.score || 0}&percent=${data.percent || 0}&total=${data.total || 0}&correct=${data.correct || 0}&pib=${encodeURIComponent(pib)}`);
       })
       .catch(() => {
         navigate(`/result?error=1`);
       });
   };
 
-  // --- Новый прогресс-бар (сегменты, Bootstrap) ---
+  // --- Новый прогресс-бар: горизонтальные сегменты, кликабельные ---
   const renderProgressBar = () => (
-    <div className="d-flex mb-4" style={{ gap: 4 }}>
+    <div className="w-100 mb-4 d-flex flex-row align-items-center justify-content-center" style={{gap: 6, minHeight: 18}}>
       {questions.map((qst, idx) => {
         const answered = answers[qst.id] && answers[qst.id].length > 0;
         const active = idx === current;
@@ -88,12 +88,15 @@ export default function Test() {
             key={qst.id}
             style={{
               flex: 1,
-              height: 18,
+              height: 14,
+              minWidth: 24,
+              maxWidth: 50,
               background: answered ? "#198754" : "#e9ecef",
-              borderRadius: 2,
-              border: active ? '2px solid #0d6efd' : '1px solid #adb5bd',
+              borderRadius: 3,
+              border: active ? '2.5px solid #0d6efd' : '1px solid #adb5bd',
               transition: 'all 0.15s',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: active ? '0 0 8px #0d6efd22' : ''
             }}
             title={`Перейти до питання ${idx + 1}`}
             onClick={() => setCurrent(idx)}
