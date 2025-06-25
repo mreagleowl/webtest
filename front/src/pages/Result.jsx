@@ -1,28 +1,33 @@
 import React from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 export default function Result() {
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const score = params.get("score");
-  const pib = params.get("pib");
-  const error = params.get("error");
-
-  if (error) {
-    return (
-      <div className="container text-center py-5">
-        <div className="alert alert-danger">Виникла помилка при збереженні результату!</div>
-        <Link to="/" className="btn btn-outline-secondary mt-4">На головну</Link>
-      </div>
-    );
-  }
+  const [searchParams] = useSearchParams();
+  const score = searchParams.get("score");
+  const percent = searchParams.get("percent");
+  const pib = searchParams.get("pib");
+  const total = searchParams.get("total");
+  const correct = searchParams.get("correct");
+  const error = searchParams.get("error");
+  const navigate = useNavigate();
 
   return (
-    <div className="container d-flex flex-column align-items-center justify-content-center min-vh-100">
-      <div className="card p-5 shadow text-center">
-        <h2 className="mb-4">Дякуємо, {pib || "учасник"}!</h2>
-        <h4 className="mb-3">Ваша оцінка: <span className="text-success">{score}</span></h4>
-        <Link to="/" className="btn btn-primary mt-3">Повернутись на головну</Link>
+    <div className="container py-5 d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "100vh", maxWidth: 700 }}>
+      <div className="card p-4 shadow" style={{ maxWidth: 500 }}>
+        <h2 className="mb-3 text-center">Результат тесту</h2>
+        {error ? (
+          <div className="alert alert-danger mb-3">Помилка при збереженні результату</div>
+        ) : (
+          <>
+            <div className="mb-2 fs-5 text-center">Дякуємо, <b>{pib}</b>!</div>
+            <div className="mb-2 text-center">Ваша оцінка: <b>{score}</b> із <b>{total}</b></div>
+            <div className="mb-2 text-center">Процент правильних: <b>{percent}%</b></div>
+            <div className="mb-2 text-center">Правильних відповідей (correct): <b>{correct}</b></div>
+          </>
+        )}
+        <div className="d-flex justify-content-center mt-4">
+          <button className="btn btn-primary" onClick={() => navigate("/")}>На головну</button>
+        </div>
       </div>
     </div>
   );
