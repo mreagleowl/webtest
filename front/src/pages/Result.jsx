@@ -22,7 +22,7 @@ export default function Result() {
             <div className="mb-2 fs-5 text-center">Дякуємо, <b>{pib}</b>!</div>
             <div className="mb-2 text-center">Ваша оцінка: <b>{score}</b> із <b>{total}</b></div>
             <div className="mb-2 text-center">Процент правильних: <b>{percent}%</b></div>
-            <div className="mb-2 text-center">Правильних відповідей (correct): <b>{correct}</b></div>
+            <div className="mb-2 text-center">Правильних відповідей (correct, машинні індекси): <b>{correct}</b></div>
           </>
         )}
         <div className="d-flex justify-content-center mt-4">
