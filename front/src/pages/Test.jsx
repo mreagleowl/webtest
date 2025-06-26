@@ -1,3 +1,5 @@
+// front/src/pages/Test.jsx
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -77,7 +79,7 @@ export default function Test() {
       });
   };
 
-  // --- Новый прогресс-бар: горизонтальные сегменты, кликабельные ---
+  // Прогресс-бар: только машинные индексы
   const renderProgressBar = () => (
     <div className="w-100 mb-4 d-flex flex-row align-items-center justify-content-center" style={{gap: 6, minHeight: 18}}>
       {questions.map((qst, idx) => {
