@@ -1,7 +1,26 @@
+// Версія: 1.3.3, Дата: 2025-06-27 UTC
 import React, { useState, useEffect } from "react";
 
 function parseTxt(content) {
   const lines = content.split(/\r?\n/).map(l => l.trim());
+
+  // --- НОВА ВАЛІДАЦІЯ: всі строки, схожі на варіант з латиницею ---
+  const badOptions = [];
+  lines.forEach((line, idx) => {
+    // Детектуємо латинську букву з крапкою на початку
+    if (/^[A-Z]\./.test(line)) {
+      badOptions.push(`Рядок ${idx + 1}: "${line}"`);
+    }
+  });
+  if (badOptions.length) {
+    throw new Error(
+      'Виявлено варіанти, що починаються з латинської букви (A., B., ...):\n' +
+      badOptions.join('\n') +
+      '\nВаріанти відповідей повинні починатися з кириличної букви (А., Б., ...).'
+    );
+  }
+  // --- END ---
+
   const questions = [];
   let cur = null;
   let id = 1;
@@ -26,25 +45,6 @@ function parseTxt(content) {
   });
   if (cur) questions.push(cur);
   const title = questions[0]?.question?.slice(0, 30) || "Тема тесту";
-
-  // --- Проверка на латинские буквы в вариантах ---
-  const badOptions = [];
-  questions.forEach((q, qIdx) => {
-    (q.options || []).forEach((opt, optIdx) => {
-      if (/^[A-Z]\./.test(opt)) {
-        badOptions.push(`Питання ${qIdx + 1}, варіант ${optIdx + 1}: "${opt}"`);
-      }
-    });
-  });
-  if (badOptions.length) {
-    throw new Error(
-      'Виявлено варіанти, що починаються з латинської букви (A., B., ...):\n' +
-      badOptions.join('\n') +
-      '\nВаріанти відповідей повинні починатися з кириличної букви (А., Б., ...).'
-    );
-  }
-  // --- конец блока ---
-
   return {
     title,
     num_questions: questions.length,
