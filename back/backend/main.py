@@ -1,4 +1,4 @@
-# Версия: 1.3.1, Дата: 2025-06-27 UTC
+# Версия: 1.3.2, Дата: 2025-06-27 UTC
 
 from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
@@ -145,21 +145,7 @@ async def convert_questions(
 @app.post("/api/themes/upload")
 async def upload_theme(request: Request):
     data = await request.json()
-    # --- Валидация вариантов на латиницу ---
-    bad_options = []
-    questions = data.get("questions", [])
-    for q_idx, q in enumerate(questions):
-        for o_idx, opt in enumerate(q.get("options", [])):
-            if isinstance(opt, str) and len(opt) > 1 and opt[1] == "." and opt[0].isalpha() and opt[0].upper() in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                bad_options.append(f"Питання {q_idx + 1}, варіант {o_idx + 1}: '{opt}'")
-    if bad_options:
-        raise HTTPException(
-            status_code=400,
-            detail=("Виявлено варіанти, що починаються з латинської букви (A., B., ...):\n" +
-                   "\n".join(bad_options) +
-                   "\nВаріанти відповідей повинні починатися з кириличної букви (А., Б., ...).")
-        )
-    # --- конец валидации ---
+    # --- Проверка вариантов на латиницу убрана: логика только на фронте ---
     title = data.get("title") or "theme"
     filename = f"{title.replace(' ', '_').lower()}.json"
     path = os.path.join(QUESTIONS_DIR, filename)
