@@ -1,6 +1,32 @@
+# Версия: 1.3.0, Дата: 2025-06-26 UTC
+
 import re
 
 def parse_questions_file(text: str):
+    """
+    Парсинг текстового файла с вопросами и вариантами відповідей.
+    Если обнаружены латинские символы (A-Z, a-z) — обработка прерывается,
+    выбрасывается Exception c подробным списком ошибок:
+      - символ, строка, позиция, содержимое строки.
+    """
+
+    warnings = []
+    for idx, line in enumerate(text.splitlines(), 1):
+        for match in re.finditer(r'[A-Za-z]', line):
+            warnings.append({
+                'line_number': idx,
+                'char': match.group(0),
+                'char_index': match.start() + 1,
+                'line': line
+            })
+    if warnings:
+        message_lines = ["ПОМИЛКА: Виявлено латинські символи у файлі!"]
+        for w in warnings:
+            message_lines.append(
+                f"Рядок {w['line_number']}, позиція {w['char_index']}: '{w['char']}' у \"{w['line']}\""
+            )
+        raise Exception('\n'.join(message_lines))
+
     blocks = re.split(r'\n\s*\n', text.strip())
     questions = []
     for block in blocks:
