@@ -45,9 +45,12 @@ def get_questions(theme_id: str):
         raise HTTPException(status_code=404, detail="Тема не знайдена")
     with open(fpath, encoding="utf-8") as f:
         data = json.load(f)
-    from random import sample
+#    from random import sample
+#    n = min(data["num_questions"], len(data["questions"]))
+#    questions = sample(data["questions"], n)
     n = min(data["num_questions"], len(data["questions"]))
-    questions = sample(data["questions"], n)
+    questions = data["questions"][:n]
+
     for i, q in enumerate(questions):
         q = q.copy()
         q.pop("correct", None)  # не возвращаем правильный ответ
