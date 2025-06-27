@@ -1,14 +1,14 @@
-// Версія: 1.3.3, Дата: 2025-06-27 UTC
+// Версія: 1.3.4, Дата: 2025-06-27 UTC
 import React, { useState, useEffect } from "react";
 
 function parseTxt(content) {
   const lines = content.split(/\r?\n/).map(l => l.trim());
 
-  // --- НОВА ВАЛІДАЦІЯ: всі строки, схожі на варіант з латиницею ---
+  // --- ВАЛІДАЦІЯ: латинські букви у варіантах ДО парсингу ---
   const badOptions = [];
   lines.forEach((line, idx) => {
-    // Детектуємо латинську букву з крапкою на початку
-    if (/^[A-Z]\./.test(line)) {
+    // Варіант: латинська літера + крапка + пробіл або текст
+    if (/^[A-Z]\.\s?.+/.test(line)) {
       badOptions.push(`Рядок ${idx + 1}: "${line}"`);
     }
   });
