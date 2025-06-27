@@ -1,3 +1,5 @@
+# Версия: 1.3.0, Дата: 2025-06-26 UTC
+
 from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -125,7 +127,10 @@ async def convert_questions(
     file: UploadFile = File(...)
 ):
     content = (await file.read()).decode("utf-8")
-    questions = parse_questions_file(content)
+    try:
+        questions = parse_questions_file(content)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if not questions:
         raise HTTPException(status_code=400, detail="Помилка у файлі питань")
     data = {
