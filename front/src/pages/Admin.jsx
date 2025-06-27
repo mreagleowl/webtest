@@ -26,6 +26,25 @@ function parseTxt(content) {
   });
   if (cur) questions.push(cur);
   const title = questions[0]?.question?.slice(0, 30) || "Тема тесту";
+
+  // --- Проверка на латинские буквы в вариантах ---
+  const badOptions = [];
+  questions.forEach((q, qIdx) => {
+    (q.options || []).forEach((opt, optIdx) => {
+      if (/^[A-Z]\./.test(opt)) {
+        badOptions.push(`Питання ${qIdx + 1}, варіант ${optIdx + 1}: "${opt}"`);
+      }
+    });
+  });
+  if (badOptions.length) {
+    throw new Error(
+      'Виявлено варіанти, що починаються з латинської букви (A., B., ...):\n' +
+      badOptions.join('\n') +
+      '\nВаріанти відповідей повинні починатися з кириличної букви (А., Б., ...).'
+    );
+  }
+  // --- конец блока ---
+
   return {
     title,
     num_questions: questions.length,
